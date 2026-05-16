@@ -9,7 +9,7 @@ from app.models.warehouse import Warehouse
 
 from app.schemas.stock import (StockCreate, StockResponse)
 
-router = APIRouter (prefix="/stock", tags=["stock"])
+router = APIRouter (prefix="/stock", tags=["Stock"])
 
 @router.post("/", response_model=StockResponse)
 def create_stock(
