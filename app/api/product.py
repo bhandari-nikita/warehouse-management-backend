@@ -5,6 +5,8 @@ from app.db.dependencies import get_db
 from app.models.product import Product
 from app.schemas.product import (ProductCreate, ProductResponse)
 
+from app.services.product_service import (create_product_service)
+
 router = APIRouter (prefix="/products", tags=["Products"])
 
 @router.get("/", response_model=list[ProductResponse])
@@ -24,20 +26,9 @@ def get_products(
 @router.post("/", response_model=ProductResponse)
 def create_product(
     product: ProductCreate,
-    db: Session = Depends(get_db) 
+    db: Session = Depends(get_db) # FastAPI automatically provides a database session using dependency injection.
 ):
-    new_product = Product (
-        name = product.name,
-        sku = product.sku,
-        description = product.description,
-        price = product.price
-    )
-
-    db.add(new_product)
-    db.commit()
-    db.refresh(new_product)
-
-    return new_product
+    return create_product_service(product, db)
 
 
 @router.put("/{product_id}", response_model=ProductResponse)

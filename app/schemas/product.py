@@ -1,10 +1,10 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 class ProductCreate(BaseModel):
-    name: str
-    sku: str
+    name: str = Field(..., min_length=2)
+    sku: str = Field(..., min_length=2)
     description: str
-    price: float
+    price: float = Field(..., gt=0)  # ... means required, gt=0 means greater than 0
 
 class ProductResponse(BaseModel):
     id: int
