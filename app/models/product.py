@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Float, Integer, String
+from sqlalchemy import Column, Float, Integer, String, Boolean
 from app.db.database import Base
 
 class Product(Base):
@@ -9,3 +9,4 @@ class Product(Base):
     sku = Column (String, unique=True, nullable=False) #Stock Keeping Unit - Example: LAPTOP-HP-001
     description = Column (String)
     price = Column (Float, nullable=False)
+    is_deleted = Column (Boolean, default=False)

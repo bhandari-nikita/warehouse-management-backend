@@ -7,6 +7,9 @@ from app.db.dependencies import get_db
 from app.schemas.transfer import StockTransfer
 
 from app.models.stock import Stock
+from app.models.product import Product
+
+from app.services.audit_service import create_audit_log
 
 router = APIRouter (prefix="/transfer", tags=["Transfer"])
 
@@ -65,6 +68,28 @@ def transfer_stock(
         
     source_stock.quantity -= transfer.quantity
     destination_stock.quantity += transfer.quantity
+    
+    product = db.query(Product).filter(
+        Product.id == transfer.product_id
+    ).first()
+
+    if not product:
+        raise HTTPException(
+            status_code=404,
+            detail="Product not found."
+    )
+
+    create_audit_log(
+    db=db,
+    user_email=current_user.email,
+    action=f"Transferred product "
+           f"{product.name} "
+           f"quantity {transfer.quantity} "
+           f"from warehouse "
+           f"{transfer.source_warehouse_id} "
+           f"to warehouse "
+           f"{transfer.destination_warehouse_id}"
+    )
 
     db.commit()
 

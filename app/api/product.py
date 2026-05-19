@@ -6,6 +6,7 @@ from app.models.product import Product
 from app.schemas.product import (ProductCreate, ProductResponse)
 
 from app.services.product_service import (create_product_service)
+from app.services.audit_service import create_audit_log
 
 from app.core.security import require_role
 
@@ -20,7 +21,8 @@ def get_products(
     db: Session = Depends(get_db)
 ):
     products = db.query(Product).filter(
-        Product.price >= min_price
+        Product.price >= min_price,
+        Product.is_deleted == False
     ).offset(offset).limit(limit).all()
 
     return products
@@ -50,9 +52,9 @@ def update_product(
             detail = "Product not found"
         )
     
-    product.name = updated_product.name,
-    product.sku = updated_product.sku,
-    product.description = updated_product.description,
+    product.name = updated_product.name
+    product.sku = updated_product.sku
+    product.description = updated_product.description
     product.price = updated_product.price
 
     db.commit()
@@ -77,7 +79,14 @@ def delete_product(
             detail = "Product not found"
         )
     
-    db.delete(product)
+    product.is_deleted = True
+
+    create_audit_log(
+        db=db,
+        user_email=current_user.email,
+        action=f"Deleted product {product.id}"
+    )
+    
     db.commit()
 
     return {"message": "Product deleted successfully"}
