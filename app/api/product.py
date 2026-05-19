@@ -7,6 +7,9 @@ from app.schemas.product import (ProductCreate, ProductResponse)
 
 from app.services.product_service import (create_product_service)
 
+from app.core.security import require_role
+
+
 router = APIRouter (prefix="/products", tags=["Products"])
 
 @router.get("/", response_model=list[ProductResponse])
@@ -61,7 +64,8 @@ def update_product(
 @router.delete("/{product_id}")
 def delete_product(
     product_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user = Depends(require_role(["admin"]))
 ):
     product = db.query(Product).filter(
         Product.id == product_id
@@ -77,3 +81,5 @@ def delete_product(
     db.commit()
 
     return {"message": "Product deleted successfully"}
+
+

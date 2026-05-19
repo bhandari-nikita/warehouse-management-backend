@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from app.core.security import require_role
 from app.db.dependencies import get_db
 
 from app.schemas.transfer import StockTransfer
@@ -12,7 +13,8 @@ router = APIRouter (prefix="/transfer", tags=["Transfer"])
 @router.post("/")
 def transfer_stock(
     transfer: StockTransfer,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user = Depends(require_role(["admin", "manager"]))
 ):
     if transfer.quantity <= 0:
         raise HTTPException(
