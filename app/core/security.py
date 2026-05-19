@@ -1,6 +1,17 @@
-from jose import jwt
+from jose import JWTError, jwt
+from fastapi import HTTPException, Depends
+from sqlalchemy.orm import Session
+
 from datetime import datetime, timedelta
 from passlib.context import CryptContext
+from fastapi.security import OAuth2PasswordBearer
+
+from app.db.dependencies import get_db
+from app.models.user import User
+
+oauth2_scheme = OAuth2PasswordBearer(
+    tokenUrl="/auth/login"
+)
 
 SECRET_KEY = "WMB_key"  #server uses this key to create token. Server also uses this key to verify token
 ALGORITHM = "HS256"   #→ Algorithm used to digitally sign token. HS256 is a common choice for symmetric signing, where the same secret key is used for both signing and verifying the token.
@@ -36,3 +47,36 @@ def create_access_token(data: dict): #data contains payload information.
     )
 
     return encoded_jwt
+
+def get_current_user(
+        token: str = Depends(oauth2_scheme),
+        db: Session = Depends(get_db)
+):
+    credentials_exception = HTTPException(
+        status_code=401,
+        detail="Invalid authentication credentials"
+    )
+
+    try:
+        payload = jwt.decode(
+            token,
+            SECRET_KEY,
+            algorithms=[ALGORITHM]
+        )
+
+        email = payload.get("sub")
+
+        if email is None:
+            raise credentials_exception
+        
+    except JWTError:
+        raise HTTPException
+    
+    user = db.query(User).filter(
+        User.email == email
+    ).first()
+
+    if user is None:
+        raise credentials_exception
+    
+    return user

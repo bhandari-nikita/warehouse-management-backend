@@ -3,10 +3,11 @@ from sqlalchemy.orm import Session
 
 from app.db.dependencies import get_db
 from app.models.user import User
-from app.schemas.user import UserCreate, UserLogin
+from app.schemas.user import (UserCreate, UserLogin)
 
-from app.core.security import hash_password, verify_password
-from app.core.security import create_access_token
+from app.core.security import (hash_password, verify_password)
+from app.core.security import (create_access_token)
+from app.core.security import (get_current_user)
 
 router = APIRouter(
     prefix="/auth",
@@ -80,4 +81,14 @@ def login_user(
     return {
         "access_token": access_token,
         "token_type": "bearer"  #Why Called “Bearer” Because: the bearer (holder) of token gets access.
+    }
+
+@router.get("/me")
+def get_me(
+    current_user: User = Depends(get_current_user)
+):
+    return {
+        "id": current_user.id,
+        "email": current_user.email,
+        "role": current_user.role
     }
