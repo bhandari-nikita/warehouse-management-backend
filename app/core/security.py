@@ -9,12 +9,17 @@ from fastapi.security import OAuth2PasswordBearer
 from app.db.dependencies import get_db
 from app.models.user import User
 
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
 oauth2_scheme = OAuth2PasswordBearer(
     tokenUrl="/auth/login"
 )
 
-SECRET_KEY = "WMB_key"  #server uses this key to create token. Server also uses this key to verify token
-ALGORITHM = "HS256"   #→ Algorithm used to digitally sign token. HS256 is a common choice for symmetric signing, where the same secret key is used for both signing and verifying the token.
+SECRET_KEY = os.getenv("SECRET_KEY")  #server uses this key to create token. Server also uses this key to verify token
+ALGORITHM = os.getenv("ALGORITHM")   #→ Algorithm used to digitally sign token. HS256 is a common choice for symmetric signing, where the same secret key is used for both signing and verifying the token.
 
 pwd_context = CryptContext(
     schemes=["bcrypt"],
